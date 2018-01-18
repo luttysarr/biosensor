@@ -1,4 +1,4 @@
-combineMultiShifts <- function(loc, net, name){
+combineMultiShifts <- function(loc, net, name, cycle){
 
         `%>%` <- magrittr::`%>%`
 
@@ -18,7 +18,12 @@ combineMultiShifts <- function(loc, net, name){
         })
 
         netComb <- dplyr::bind_rows(netShifts)
+        
+        if(cycle == FALSE){
+                readr::write_csv(netComb, path = "netShiftsCombined.csv")
+        }
 
+        if(cycle == TRUE){
         netCast <- reshape2::dcast(netComb, Ring + Group + Target + Experiment + Channel ~
                                  Step, value.var = "NetShift",
                                  fun.aggregate = mean)
@@ -38,4 +43,5 @@ combineMultiShifts <- function(loc, net, name){
         filename <- paste0(loc, "/", name, "_netShiftsCombined", ".csv")
 
         readr::write_csv(netMelt, path = filename)
+        }
 }
