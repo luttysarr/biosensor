@@ -37,6 +37,10 @@
 #' @param uchannel a logical value indicating if experiment is a U-channel
 #' @param multiNet a logical value indicating if there mulitple net shifts for a
 #' single run
+#' @param cycle a logical value indicating if combination of multiple net shifts
+#' needs to have data manipulation for PCR cycles
+#' @param bindingKd a logical value indicating if there are multiple net shifts
+#' for a single run that are to be fit with a binding curve to determine Kd
 #'
 #' @return This function returns csv files containing processed data along with
 #' a number of png files containing plots of the processed data.
@@ -52,7 +56,7 @@
 
 analyzeBiosensorData <- function(time1 = 51,
                                  time2 = 39,
-                                 filename = "groupNames_XPP.csv",
+                                 filename = "groupNames_allClusters.csv",
                                  loc = "plots",
                                  cntl = "thermal",
                                  chopRun = 0,
@@ -60,10 +64,12 @@ analyzeBiosensorData <- function(time1 = 51,
                                  chkRings = FALSE,
                                  plotData = TRUE,
                                  celebrate = FALSE,
-                                 netShifts = TRUE,
+                                 netShifts = FALSE,
                                  getLayoutFile = FALSE,
-                                 uchannel = FALSE,
-                                 multiNet = FALSE) {
+                                 uchannel = TRUE,
+                                 multiNet = FALSE
+                                 cycle = FALSE
+                                 bindingKd = TRUE) {
 
         # set theme for all plots
         ggplot2::theme_set(ggplot2::theme_classic(base_size = 16))
@@ -140,10 +146,20 @@ analyzeBiosensorData <- function(time1 = 51,
                               cntl = cntl,
                               loc = loc,
                               name = name)
-                combMulti <- combineMultiShifts(loc = loc, name = name)
+                combMulti <- combineMultiShifts(loc = loc, name = name, cycle = cycle)
                 plotMulitShifts(data = combMulti, loc = loc, name = name)
                 fitMultiCurves(data = combMulti, loc = loc)
                 netShifts <- FALSE
+        }
+  
+        if(bindingKd){
+                multiNetShift(netFile = "multiNetShifts.csv",
+                              data = subDat_chU,
+                              cntl = cntl,
+                              loc = loc,
+                              name = name)
+                combMulti <- combineMultiShifts(loc = loc, name = name, cycle = cycle)
+                fitBindingKd(netFile = "netShiftsCombined.csv", loc = loc, name = name)
         }
 
         if(netShifts){
